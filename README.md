@@ -26,7 +26,7 @@ IFTTT の Webhook を受け取り Notion API を叩く Google Cloud Functions
 
 - Google Cloud のアカウントとプロジェクトが必要です。これは Google Cloud Functions へのデプロイに使用されます。
 - 適切な権限を持つサービスアカウントが必要です。このサービスアカウントの認証情報（`GCP_WORKLOAD_IDENTITY_PROVIDER`、`GCP_SERVICE_ACCOUNT`）を GitHub Secrets に設定する必要があります。
-  - 参考：[GitHub Actions から Google Cloud Functions にデプロイ | blog.shgnkn.io](https://blog.shgnkn.io/github-actions-deploy-google-cloud-functions/)
+    - 参考：[GitHub Actions から Google Cloud Functions にデプロイ | blog.shgnkn.io](https://blog.shgnkn.io/github-actions-deploy-google-cloud-functions/)
 - Notion API と IFTTT の Webhook からのリクエストの認証に使用される`NOTION_API_KEY`と`ACCESS_TOKEN`も GitHub Secrets に設定する必要があります。
 
 初回デプロイ後は Google Cloud Functions 側で認証がかかっています。認証を外すには以下を参考に設定してください。
