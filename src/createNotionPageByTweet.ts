@@ -99,22 +99,28 @@ export async function createNotionPageByTweet({
 
   console.log("Notion Page Created:", page.id);
 
+  const convertToEmbedUrl = (url: string) => {
+      return `https://twitframe.com/show?url=${encodeURIComponent(url)}`;
+  };
+  
+  const embedUrl = convertToEmbedUrl(url);
+  
   try {
-    await notion.blocks.children.append({
-      block_id: page.id,
-      children: [
-        {
-          object: "block",
-          type: "embed",
-          embed: {
-            url: url,
-          },
-        },
-      ],
-    });
-    console.log("Tweet Embed Added to Notion Page");
+      await notion.blocks.children.append({
+          block_id: page.id,
+          children: [
+              {
+                  object: "block",
+                  type: "embed",
+                  embed: {
+                      url: embedUrl,
+                  },
+              },
+          ],
+      });
+      console.log("Tweet Embed Added to Notion Page");
   } catch (error) {
-    console.error("Error adding embed block:", error);
+      console.error("Error adding embed block:", error);
   }
 
   return page;
