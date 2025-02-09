@@ -7,6 +7,7 @@ type RequestBody = {
   linkToTweet: string;
   createdAt: string;
   type: "tweet" | "like";
+  tweetEmbedCode?: string;
 };
 
 const accessToken = process.env.ACCESS_TOKEN;
@@ -28,6 +29,7 @@ export const iftttToNotion = functions.http(
     const createdAt = body.createdAt;
     const username = body.userName;
     const type = body.type;
+    const tweetEmbedCode = body.tweetEmbedCode;
 
     try {
       const response = await createNotionPageByTweet({
@@ -36,6 +38,7 @@ export const iftttToNotion = functions.http(
         type,
         url,
         username,
+        tweetEmbedCode,
       });
       console.log("New page created:", response);
       res.json(response);
