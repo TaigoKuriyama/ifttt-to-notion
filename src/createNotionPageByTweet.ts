@@ -31,7 +31,12 @@ const extractId = (url: string) => {
   return idStr;
 };
 
-// Twitterの埋め込みURLを生成する関数
+// x.com → twitter.com に変換する関数
+const normalizeTwitterUrl = (url: string) => {
+  return url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
+};
+
+// Twitterの埋め込みURLを生成（直接ツイートURLを返す）
 const convertToEmbedUrl = (url: string) => {
   const tweetId = extractId(url);
   return `https://twitter.com/i/web/status/${tweetId}`;
@@ -44,8 +49,8 @@ export async function createNotionPageByTweet({
   username,
   type,
 }: Args) {
-  // x.com → twitter.com に変換
-  const normalizedUrl = url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
+  // URLを正規化（x.com → twitter.com）
+  const normalizedUrl = normalizeTwitterUrl(url);
 
   const properties: Parameters<typeof notion.pages.create>[0]["properties"] = {
     title: {
@@ -111,7 +116,7 @@ export async function createNotionPageByTweet({
           object: "block",
           type: "embed",
           embed: {
-            url: convertToEmbedUrl(normalizedUrl),
+            url: convertToEmbedUrl(normalizedUrl), // 修正：publish.twitter.com ではなく直接ツイートURL
           },
         },
       ],
