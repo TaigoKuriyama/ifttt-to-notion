@@ -102,8 +102,30 @@ export async function createNotionPageByTweet({
     };
   }
 
-  return notion.pages.create({
+  const page = await notion.pages.create({
     parent: { database_id: databaseId },
     properties,
   });
+
+  console.log("Notion Page Created:", page.id);
+
+  try {
+    await notion.blocks.children.append({
+      block_id: page.id,
+      children: [
+        {
+          object: "block",
+          type: "embed",
+          embed: {
+            url: url,
+          },
+        },
+      ],
+    });
+    console.log("Tweet Embed Added to Notion Page");
+  } catch (error) {
+    console.error("Error adding embed block:", error);
+  }
+
+  return page;
 }
