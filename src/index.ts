@@ -15,7 +15,7 @@ const accessToken = process.env.ACCESS_TOKEN;
 export const iftttToNotion = functions.http(
   "iftttToNotion",
   async (req: functions.Request, res: functions.Response) => {
-    // accessTokenが不正なら401を返す
+    // 認証チェック
     if (req.headers.authorization !== `Bearer ${accessToken}`) {
       const error = { status: 401, message: "Unauthorized" };
       console.error(error);
@@ -24,32 +24,21 @@ export const iftttToNotion = functions.http(
     }
 
     const body: RequestBody = req.body;
-    const url = body.linkToTweet;
-    const text = body.text;
-    const createdAt = body.createdAt;
-    const username = body.userName;
-    const type = body.type;
-    const tweetEmbedCode = body.tweetEmbedCode;
 
     try {
       const response = await createNotionPageByTweet({
-        text,
-        createdAt,
-        type,
-        url,
-        username,
-        tweetEmbedCode,
+        text: body.text,
+        createdAt: body.createdAt,
+        type: body.type,
+        url: body.linkToTweet,
+        username: body.userName,
+        tweetEmbedCode: body.tweetEmbedCode,
       });
       console.log("New page created:", response);
       res.json(response);
     } catch (error: any) {
-      if (error.code) {
-        console.error("API error:", error.code, error.message);
-        res.status(500).json(error);
-      } else {
-        console.error("Unknown error:", error);
-        res.status(500).json(error);
-      }
+      console.error("Error:", error);
+      res.status(500).json({ message: "Internal Server Error", error });
     }
   }
 );
