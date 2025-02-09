@@ -11,7 +11,7 @@ type Args = {
 };
 
 const apiKey = process.env.NOTION_API_KEY;
-const databaseId = process.env.NOTION_DATABASE_ID;
+const databaseId = process.env.NOTION_DATABASE_ID!;
 
 if (!databaseId) {
   throw new Error("DATABASE_ID が設定されていません");
