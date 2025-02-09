@@ -34,7 +34,7 @@ const extractId = (url: string) => {
 // Twitterの埋め込みURLを生成する関数
 const convertToEmbedUrl = (url: string) => {
   const tweetId = extractId(url);
-  return `https://publish.twitter.com/oembed?url=https://twitter.com/i/web/status/${tweetId}`;
+  return `https://twitter.com/i/web/status/${tweetId}`;
 };
 
 export async function createNotionPageByTweet({
