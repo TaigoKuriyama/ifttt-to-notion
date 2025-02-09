@@ -32,6 +32,9 @@ const extractId = (url: string) => {
   return parseInt(idStr);
 };
 
+// x.com → twitter.com に変換
+const convertXtoTwitter = (url: string) => url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
+
 export async function createNotionPageByTweet({
   text,
   createdAt,
@@ -89,25 +92,15 @@ export async function createNotionPageByTweet({
     };
   }
 
-  if (tweetEmbedCode) {
-    properties["tweet_embed_code"] = {
-      type: "rich_text",
-      rich_text: [
-        {
-          text: {
-            content: tweetEmbedCode,
-          },
-        },
-      ],
-    };
-  }
-
   const page = await notion.pages.create({
     parent: { database_id: databaseId },
     properties,
   });
 
   console.log("Notion Page Created:", page.id);
+
+  // 埋め込み用の URL を変換
+  const embedUrl = convertXtoTwitter(url);
 
   try {
     await notion.blocks.children.append({
@@ -117,7 +110,7 @@ export async function createNotionPageByTweet({
           object: "block",
           type: "embed",
           embed: {
-            url: url,
+            url: embedUrl,
           },
         },
       ],
