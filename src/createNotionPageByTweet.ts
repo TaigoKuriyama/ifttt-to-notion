@@ -114,9 +114,9 @@ export async function createNotionPageByTweet({
       children: [
         {
           object: "block",
-          type: "embed",
+          type: "bookmark",
           embed: {
-            url: convertToEmbedUrl(normalizedUrl), // 修正：publish.twitter.com ではなく直接ツイートURL
+            url: normalizedUrl,
           },
         },
       ],
