@@ -1,5 +1,29 @@
 # ifttt-to-notion
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Twitter as Twitter
+    participant IFTTT as IFTTT<br>(Webhook)
+    participant GCF as Google Cloud Functions<br>(iftttToNotion)
+    participant Notion as Notion API
+
+    Twitter->>IFTTT: ユーザーがツイート<br>（トリガー発火）
+    IFTTT->>GCF: Webhook (POST)<br>+ ヘッダーにACCESS_TOKEN
+    activate GCF
+    GCF->>GCF: リクエストの認証を確認
+    alt 認証トークンが一致
+        GCF->>GCF: createNotionPageByTweetを実行
+        GCF->>Notion: Notion API (pages.create)
+        Note right of Notion: 新しいページを作成
+        Notion-->>GCF: 作成結果（pageIdなど）
+        GCF-->>IFTTT: 成功（200 OK）
+    else 認証トークンが不一致
+        GCF-->>IFTTT: 401 Unauthorized
+    end
+    deactivate GCF
+```
+
 IFTTT の Webhook を受け取り Notion API を叩く Google Cloud Functions
 
 ツイートすると IFTTT のトリガーによって Google Cloud Functions にデプロイした API が呼び出され、Notion に新しいページを作成します。ページのタイトルはツイートのテキストになり、その他の情報（ユーザ名、ツイートの URL、作成日時、タイプ）もページに保存されます。
