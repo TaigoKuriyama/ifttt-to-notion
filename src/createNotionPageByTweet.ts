@@ -8,7 +8,6 @@ type Args = {
   url: string;
   createdAt?: string;
   type: "tweet" | "like";
-  tweetEmbedCode?: string;
 };
 
 const apiKey = process.env.NOTION_API_KEY;
@@ -44,7 +43,6 @@ export async function createNotionPageByTweet({
   url,
   username,
   type,
-  tweetEmbedCode,
 }: Args) {
   // x.com → twitter.com に変換
   const normalizedUrl = url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
