@@ -16,10 +16,14 @@ const databaseId = "50c2c7504a404f30bc7a222e8b565396";
 const notion = new Client({ auth: apiKey });
 
 const extractId = (url: string) => {
+  console.log("Extracting ID from URL:", url); // デバッグログ追加
   const idStr = url.match(/status\/(\d+)/)?.[1];
+
   if (!idStr) {
-    throw new Error("idを取得できませんでした");
+    console.error("Error: URL does not contain a valid tweet ID", url);
+    throw new Error(`idを取得できませんでした: ${url}`);
   }
+
   return parseInt(idStr);
 };
 
