@@ -8,6 +8,7 @@ type Args = {
   url: string;
   createdAt?: string;
   type: "tweet" | "like";
+  tweetEmbedCode?: string;
 };
 
 const apiKey = process.env.NOTION_API_KEY;
@@ -37,6 +38,7 @@ export async function createNotionPageByTweet({
   url,
   username,
   type,
+  tweetEmbedCode,
 }: Args) {
   const properties: Parameters<typeof notion.pages.create>[0]["properties"] = {
     title: {
@@ -84,6 +86,19 @@ export async function createNotionPageByTweet({
       date: {
         start: convertToISO8601(createdAt),
       },
+    };
+  }
+
+  if (tweetEmbedCode) {
+    properties["tweet_embed_code"] = {
+      type: "rich_text",
+      rich_text: [
+        {
+          text: {
+            content: tweetEmbedCode,
+          },
+        },
+      ],
     };
   }
 
