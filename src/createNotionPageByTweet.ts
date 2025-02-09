@@ -8,7 +8,6 @@ type Args = {
   url: string;
   createdAt?: string;
   type: "tweet" | "like";
-  tweetEmbedCode?: string;
 };
 
 const apiKey = process.env.NOTION_API_KEY;
@@ -20,6 +19,7 @@ if (!databaseId) {
 
 const notion = new Client({ auth: apiKey });
 
+// ツイートの ID を URL から抽出する例
 const extractId = (url: string) => {
   console.log("Extracting ID from URL:", url);
   const idStr = url.match(/status\/(\d+)/)?.[1];
@@ -32,8 +32,9 @@ const extractId = (url: string) => {
   return parseInt(idStr);
 };
 
-// x.com → twitter.com に変換
-const convertXtoTwitter = (url: string) => url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
+// x.com → twitter.com に置換する例
+const convertXtoTwitter = (url: string) =>
+  url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
 
 export async function createNotionPageByTweet({
   text,
@@ -41,8 +42,11 @@ export async function createNotionPageByTweet({
   url,
   username,
   type,
-  tweetEmbedCode,
 }: Args) {
+  // x.com を twitter.com に変換（必要に応じて）
+  url = convertXtoTwitter(url);
+
+  // Notion に登録するページのプロパティを設定
   const properties: Parameters<typeof notion.pages.create>[0]["properties"] = {
     title: {
       title: [
@@ -58,7 +62,7 @@ export async function createNotionPageByTweet({
       rich_text: await parseTextAndUrl(text),
     },
     url: {
-      url: url,
+      url,
     },
     id: {
       type: "number",
@@ -83,6 +87,7 @@ export async function createNotionPageByTweet({
     },
   };
 
+  // ツイート日時があれば ISO8601 に変換してセット
   if (createdAt) {
     properties["tweet_created_at"] = {
       type: "date",
@@ -92,6 +97,7 @@ export async function createNotionPageByTweet({
     };
   }
 
+  // Notion のデータベースにページを作成
   const page = await notion.pages.create({
     parent: { database_id: databaseId },
     properties,
@@ -99,28 +105,23 @@ export async function createNotionPageByTweet({
 
   console.log("Notion Page Created:", page.id);
 
-  const convertToEmbedUrl = (url: string) => {
-      return `https://twitframe.com/show?url=${encodeURIComponent(url)}`;
-  };
-  
-  const embedUrl = convertToEmbedUrl(url);
-  
+  // 作成したページに「embed ブロック」を追加してツイートの URL を埋め込む
   try {
-      await notion.blocks.children.append({
-          block_id: page.id,
-          children: [
-              {
-                  object: "block",
-                  type: "embed",
-                  embed: {
-                      url: embedUrl,
-                  },
-              },
-          ],
-      });
-      console.log("Tweet Embed Added to Notion Page");
+    await notion.blocks.children.append({
+      block_id: page.id,
+      children: [
+        {
+          object: "block",
+          type: "embed",
+          embed: {
+            url,
+          },
+        },
+      ],
+    });
+    console.log("Tweet Embed Added to Notion Page");
   } catch (error) {
-      console.error("Error adding embed block:", error);
+    console.error("Error adding embed block:", error);
   }
 
   return page;
