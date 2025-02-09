@@ -11,12 +11,12 @@ type Args = {
 };
 
 const apiKey = process.env.NOTION_API_KEY;
-const databaseId = "50c2c7504a404f30bc7a222e8b565396";
+const databaseId = process.env.NOTION_DATABASE_ID;
 
 const notion = new Client({ auth: apiKey });
 
 const extractId = (url: string) => {
-  console.log("Extracting ID from URL:", url); // デバッグログ追加
+  console.log("Extracting ID from URL:", url);
   const idStr = url.match(/status\/(\d+)/)?.[1];
 
   if (!idStr) {
