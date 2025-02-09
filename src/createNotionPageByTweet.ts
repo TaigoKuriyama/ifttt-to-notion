@@ -99,9 +99,6 @@ export async function createNotionPageByTweet({
 
   console.log("Notion Page Created:", page.id);
 
-  // 埋め込み用の URL を変換
-  const embedUrl = convertXtoTwitter(url);
-
   try {
     await notion.blocks.children.append({
       block_id: page.id,
@@ -110,7 +107,7 @@ export async function createNotionPageByTweet({
           object: "block",
           type: "embed",
           embed: {
-            url: embedUrl,
+            url: url,
           },
         },
       ],
