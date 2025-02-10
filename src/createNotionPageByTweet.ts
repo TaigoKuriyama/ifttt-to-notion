@@ -79,7 +79,7 @@ export async function createNotionPageByTweet({
         rich_text: await parseTextAndUrl(text),
       },
       url: {
-        url: tweetUrl,
+        url: url,
       },
       id: {
         type: "number",
