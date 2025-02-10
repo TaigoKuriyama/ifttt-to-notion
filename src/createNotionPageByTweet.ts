@@ -19,27 +19,33 @@ if (!databaseId) {
 
 const notion = new Client({ auth: apiKey });
 
+/**
+ * URL からツイートIDを抽出する
+ */
 const extractId = (url: string) => {
   console.log("Extracting ID from URL:", url);
   const idStr = url.match(/status\/(\d+)/)?.[1];
 
   if (!idStr) {
     console.error("Error: URL does not contain a valid tweet ID", url);
-    throw new Error(`idを取得できませんでした: ${url}`);
+    throw new Error(`ツイートIDを取得できませんでした: ${url}`);
   }
 
   return idStr;
 };
 
-// x.com → twitter.com に変換する関数
+/**
+ * x.com → twitter.com に変換する
+ */
 const normalizeTwitterUrl = (url: string) => {
   return url.replace(/^https?:\/\/x\.com/, "https://twitter.com");
 };
 
-// Twitterの埋め込みURLを生成（直接ツイートURLを返す）
-const convertToEmbedUrl = (url: string) => {
-  const tweetId = extractId(url);
-  return `https://twitter.com/i/web/status/${tweetId}`;
+/**
+ * ユーザー名＋status 形式の埋め込みURLを生成
+ */
+const buildTweetUrl = (username: string, tweetId: string) => {
+  return `https://twitter.com/${username}/status/${tweetId}`;
 };
 
 export async function createNotionPageByTweet({
@@ -49,82 +55,92 @@ export async function createNotionPageByTweet({
   username,
   type,
 }: Args) {
-  // URLを正規化（x.com → twitter.com）
-  const normalizedUrl = normalizeTwitterUrl(url);
+  try {
+    // URLを正規化
+    const normalizedUrl = normalizeTwitterUrl(url);
+    const tweetId = extractId(normalizedUrl);
+    const tweetUrl = buildTweetUrl(username, tweetId);
 
-  const properties: Parameters<typeof notion.pages.create>[0]["properties"] = {
-    title: {
-      title: [
-        {
-          text: {
-            content: text,
-          },
-        },
-      ],
-    },
-    text: {
-      type: "rich_text",
-      rich_text: await parseTextAndUrl(text),
-    },
-    url: {
-      url: normalizedUrl,
-    },
-    id: {
-      type: "number",
-      number: parseInt(extractId(normalizedUrl)),
-    },
-    username: {
-      type: "rich_text",
-      rich_text: [
-        {
-          text: {
-            content: username,
-            link: {
-              url: `https://twitter.com/${username}`,
+    console.log("Processed Tweet URL:", tweetUrl);
+
+    // Notionに追加するプロパティ
+    const properties: Parameters<typeof notion.pages.create>[0]["properties"] = {
+      title: {
+        title: [
+          {
+            text: {
+              content: text,
             },
           },
-        },
-      ],
-    },
-    type: {
-      type: "select",
-      select: { name: type },
-    },
-  };
-
-  if (createdAt) {
-    properties["tweet_created_at"] = {
-      type: "date",
-      date: {
-        start: convertToISO8601(createdAt),
+        ],
+      },
+      text: {
+        type: "rich_text",
+        rich_text: await parseTextAndUrl(text),
+      },
+      url: {
+        url: tweetUrl,
+      },
+      id: {
+        type: "number",
+        number: parseInt(tweetId),
+      },
+      username: {
+        type: "rich_text",
+        rich_text: [
+          {
+            text: {
+              content: username,
+              link: {
+                url: `https://twitter.com/${username}`,
+              },
+            },
+          },
+        ],
+      },
+      type: {
+        type: "select",
+        select: { name: type },
       },
     };
-  }
 
-  const page = await notion.pages.create({
-    parent: { database_id: databaseId },
-    properties,
-  });
+    // ツイートの作成日時を追加
+    if (createdAt) {
+      properties["tweet_created_at"] = {
+        type: "date",
+        date: {
+          start: convertToISO8601(createdAt),
+        },
+      };
+    }
 
-  console.log("Notion Page Created:", page.id);
+    // Notionページ作成
+    const page = await notion.pages.create({
+      parent: { database_id: databaseId },
+      properties,
+    });
 
-  try {
+    console.log("✅ Notion Page Created:", page.id);
+
+    // ツイートの埋め込みを追加
     await notion.blocks.children.append({
       block_id: page.id,
       children: [
         {
           object: "block",
-          type: "bookmark",
+          type: "embed",
           embed: {
-            url: normalizedUrl,
+            url: tweetUrl,
           },
         },
       ],
     });
-    console.log("Tweet Embed Added to Notion Page");
-  } catch (error) {
-    console.error("Error adding embed block:", error);
-  }
 
-  return page;
+    console.log("✅ Tweet Embed Added to Notion Page");
+
+    return page;
+  } catch (error) {
+    console.error("❌ Error creating Notion page or embedding tweet:", error);
+    throw error;
+  }
 }
