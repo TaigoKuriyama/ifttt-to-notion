@@ -92,7 +92,7 @@ export async function createNotionPageByTweet({
             text: {
               content: username,
               link: {
-                url: `https://twitter.com/${username}`,
+                url: `https://x.com/${username}`,
               },
             },
           },
